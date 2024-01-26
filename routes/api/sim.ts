@@ -4,23 +4,59 @@ import * as BABYLON from "npm:@babylonjs/core/index.js";
 import HavokPhysics from "npm:@babylonjs/havok";
 
 const havok = await HavokPhysics(false);
-
 const engine = new NullEngine();
-export const handler = (req: Request, _ctx: FreshContext): Response => {
-  const url = req.url;
-  const search = (new URL(url)).search;
-  let x = 0;
-  let z = 0;
-  if (search) {
-    const params = new URLSearchParams(search);
-    x = Number(params.get("x"));
-    z = Number(params.get("z"));
-  }
 
+interface SimulateResultLogState {
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  rotation: {
+    x: number;
+    y: number;
+    z: number;
+  };
+}
+export type SimulateResultObjectsKeys = "ball" | "box" | "ground";
+
+export type SimulateResultLog = {
+  [key in SimulateResultObjectsKeys]: SimulateResultLogState;
+};
+export type SimulateResultLogs = SimulateResultLog[];
+
+export interface SimulateResultObjectSphere {
+  type: "sphere";
+  params: { diameter: number };
+}
+
+export interface SimulateResultObjectBox {
+  type: "box";
+  params: { height: number; width: number; depth: number };
+}
+export interface SimulateResultObjectGround {
+  type: "ground";
+  params: { width: number; height: number };
+}
+
+type SimulateResultObject =
+  | SimulateResultObjectSphere
+  | SimulateResultObjectBox
+  | SimulateResultObjectGround;
+
+export type SimulateResultObjects = {
+  [key in SimulateResultObjectsKeys]: SimulateResultObject;
+};
+
+export interface SimulateResult {
+  log: SimulateResultLogs;
+  objects: SimulateResultObjects;
+}
+
+function simulate(x: number, z: number) {
   const scene = new BABYLON.Scene(engine);
   const plugin = new BABYLON.HavokPlugin(false, havok);
 
-  // 物理エンジンの有効化
   scene.enablePhysics(
     new BABYLON.Vector3(0, -9.8, 0),
     plugin,
@@ -141,5 +177,20 @@ export const handler = (req: Request, _ctx: FreshContext): Response => {
     scene.render();
   }
 
-  return new Response(JSON.stringify({ log, objects }));
+  return { log, objects };
+}
+
+export const handler = (req: Request, _ctx: FreshContext): Response => {
+  const url = req.url;
+  const search = (new URL(url)).search;
+  let x = 0;
+  let z = 0;
+  if (search) {
+    const params = new URLSearchParams(search);
+    x = Number(params.get("x"));
+    z = Number(params.get("z"));
+  }
+
+  const result = simulate(x, z);
+  return new Response(JSON.stringify(result));
 };

@@ -1,9 +1,13 @@
 import * as BABYLON from "npm:@babylonjs/core/index.js";
+import type {
+  SimulateResult,
+  SimulateResultObjectBox,
+  SimulateResultObjectGround,
+  SimulateResultObjectsKeys,
+  SimulateResultObjectSphere,
+} from "../routes/api/sim.ts";
 
-function startBabylon(data: { log: any[]; objects: any[] }) {
-  console.log("Hello from babylon_app.ts");
-
-  //const canvas = document.getElementById("renderCanvas");
+function startBabylon(data: SimulateResult) {
   const canvas = document.createElement("canvas");
   canvas.id = `renderCanvas${(new Date()).getTime()}`;
   canvas.style.width = "400px";
@@ -30,32 +34,77 @@ function startBabylon(data: { log: any[]; objects: any[] }) {
   camera.setTarget(BABYLON.Vector3.Zero());
   camera.attachControl(canvas, true);
 
-  const light = new BABYLON.HemisphericLight(
+  new BABYLON.HemisphericLight(
     "light",
     new BABYLON.Vector3(0, 100, 0),
     scene,
   );
 
-  const objects = {};
-  const objectKeys = Object.keys(data.objects);
-  objectKeys.forEach((key: string) => {
-    console.log(data.objects[key]);
-    if (data.objects[key].type === "box") {
+  const objects: { [key in SimulateResultObjectsKeys]: BABYLON.Mesh | null } = {
+    ball: null,
+    box: null,
+    ground: null,
+  };
+  const objectKeys = Object.keys(data.objects) as Array<
+    SimulateResultObjectsKeys
+  >;
+
+  function isBoxType(src: unknown): src is SimulateResultObjectBox {
+    if (!src) {
+      return false;
+    }
+    if (typeof src !== "object") {
+      return false;
+    }
+    if (!("type" in src)) {
+      return false;
+    }
+    return src.type === "box";
+  }
+  function isSphereType(src: unknown): src is SimulateResultObjectSphere {
+    if (!src) {
+      return false;
+    }
+    if (typeof src !== "object") {
+      return false;
+    }
+    if (!("type" in src)) {
+      return false;
+    }
+    return src.type === "sphere";
+  }
+  function isGroundType(src: unknown): src is SimulateResultObjectGround {
+    if (!src) {
+      return false;
+    }
+    if (typeof src !== "object") {
+      return false;
+    }
+    if (!("type" in src)) {
+      return false;
+    }
+    return src.type === "ground";
+  }
+
+  objectKeys.forEach((key) => {
+    const object = data.objects[key];
+
+    if (isBoxType(object)) {
       objects[key] = BABYLON.MeshBuilder.CreateBox(
         key,
-        data.objects[key].params,
+        object.params,
         scene,
       );
-    } else if (data.objects[key].type === "sphere") {
+    } else if (isSphereType(object)) {
       objects[key] = BABYLON.MeshBuilder.CreateSphere(
         key,
-        data.objects[key].params,
+        object.params,
         scene,
       );
-    } else if (data.objects[key].type === "ground") {
+    } else if (isGroundType(object)) {
       objects[key] = BABYLON.MeshBuilder.CreateGround(
         key,
-        data.objects[key].params,
+        object.params,
         scene,
       );
     }
@@ -67,12 +116,15 @@ function startBabylon(data: { log: any[]; objects: any[] }) {
       i = 0;
     }
     objectKeys.forEach((key) => {
-      objects[key].position.x = data.log[i][key].position.x;
-      objects[key].position.y = data.log[i][key].position.y;
-      objects[key].position.z = data.log[i][key].position.z;
-      objects[key].rotation.x = data.log[i][key].rotation.x;
-      objects[key].rotation.y = data.log[i][key].rotation.y;
-      objects[key].rotation.z = data.log[i][key].rotation.z;
+      if (!objects[key] || objects[key] === null) {
+        return;
+      }
+      objects[key]!.position.x = data.log[i][key].position.x;
+      objects[key]!.position.y = data.log[i][key].position.y;
+      objects[key]!.position.z = data.log[i][key].position.z;
+      objects[key]!.rotation.x = data.log[i][key].rotation.x;
+      objects[key]!.rotation.y = data.log[i][key].rotation.y;
+      objects[key]!.rotation.z = data.log[i][key].rotation.z;
     });
 
     i++;
@@ -80,15 +132,19 @@ function startBabylon(data: { log: any[]; objects: any[] }) {
   });
 
   const deleteView = () => {
-    console.log("Unregistering view");
     engine.stopRenderLoop();
     engine.dispose();
     engine.views = [];
-    console.log(document.getElementById("babylonMount")?.ATTRIBUTE_NODE);
     document.getElementById("babylonMount")!.removeChild(canvas);
   };
 
   return { deleteView };
+}
+
+declare global {
+  interface Window {
+    startBabylon: typeof startBabylon;
+  }
 }
 
 export default function babylonApp() {
