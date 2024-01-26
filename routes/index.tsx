@@ -1,4 +1,3 @@
-import { useSignal } from "@preact/signals";
 import BabylonSimulationControl from "../islands/BabylonSimulationControl.tsx";
 import IconBrandGithub from "tabler_icons_tsx/tsx/brand-github.tsx";
 
