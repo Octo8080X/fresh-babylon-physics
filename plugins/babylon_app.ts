@@ -7,6 +7,43 @@ import type {
   SimulateResultObjectSphere,
 } from "../routes/api/sim.ts";
 
+function isBoxType(src: unknown): src is SimulateResultObjectBox {
+  if (!src) {
+    return false;
+  }
+  if (typeof src !== "object") {
+    return false;
+  }
+  if (!("type" in src)) {
+    return false;
+  }
+  return src.type === "box";
+}
+function isSphereType(src: unknown): src is SimulateResultObjectSphere {
+  if (!src) {
+    return false;
+  }
+  if (typeof src !== "object") {
+    return false;
+  }
+  if (!("type" in src)) {
+    return false;
+  }
+  return src.type === "sphere";
+}
+function isGroundType(src: unknown): src is SimulateResultObjectGround {
+  if (!src) {
+    return false;
+  }
+  if (typeof src !== "object") {
+    return false;
+  }
+  if (!("type" in src)) {
+    return false;
+  }
+  return src.type === "ground";
+}
+
 function startBabylon(data: SimulateResult) {
   const canvas = document.createElement("canvas");
   canvas.id = `renderCanvas${(new Date()).getTime()}`;
@@ -48,43 +85,6 @@ function startBabylon(data: SimulateResult) {
   const objectKeys = Object.keys(data.objects) as Array<
     SimulateResultObjectsKeys
   >;
-
-  function isBoxType(src: unknown): src is SimulateResultObjectBox {
-    if (!src) {
-      return false;
-    }
-    if (typeof src !== "object") {
-      return false;
-    }
-    if (!("type" in src)) {
-      return false;
-    }
-    return src.type === "box";
-  }
-  function isSphereType(src: unknown): src is SimulateResultObjectSphere {
-    if (!src) {
-      return false;
-    }
-    if (typeof src !== "object") {
-      return false;
-    }
-    if (!("type" in src)) {
-      return false;
-    }
-    return src.type === "sphere";
-  }
-  function isGroundType(src: unknown): src is SimulateResultObjectGround {
-    if (!src) {
-      return false;
-    }
-    if (typeof src !== "object") {
-      return false;
-    }
-    if (!("type" in src)) {
-      return false;
-    }
-    return src.type === "ground";
-  }
 
   objectKeys.forEach((key) => {
     const object = data.objects[key];
