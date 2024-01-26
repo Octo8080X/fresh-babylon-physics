@@ -3,14 +3,13 @@ import BabylonSimulationControl from "../islands/BabylonSimulationControl.tsx";
 import IconBrandGithub from "tabler_icons_tsx/tsx/brand-github.tsx";
 
 export default function Home() {
-  const count = useSignal(3);
   return (
-    <div class="px-4 py-4 mx-auto bg-[#EEEEFF] min-h-screen">
+    <div class="px-4 py-4 mx-auto bg-[#EFEFFF] min-h-screen">
       <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
         <h1 class="text-3xl font-bold p-2">
           Babylon.js Physics simulation by 'Havok' on Fresh!
         </h1>
-        <BabylonSimulationControl count={count} />
+        <BabylonSimulationControl />
         <div class="md:flex">
           <div
             id="babylonMount"
@@ -23,7 +22,7 @@ export default function Home() {
           >
           </div>
         </div>
-        <div class="mt-1 mx-auto flex flex-col items-center justify-center text-center">
+        <div class="max-w-screen-md mt-1 px-3 flex flex-col items-center justify-center text-center bg-white">
           <h3 class="text-xl font-bold p-2">
             Links
           </h3>
