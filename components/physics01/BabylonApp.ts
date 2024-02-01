@@ -5,7 +5,7 @@ import type {
   SimulateResultObjectGround,
   SimulateResultObjectsKeys,
   SimulateResultObjectSphere,
-} from "../routes/api/sim.ts";
+} from "../../routes/api/sim.ts";
 
 function isBoxType(src: unknown): src is SimulateResultObjectBox {
   if (!src) {
@@ -44,16 +44,12 @@ function isGroundType(src: unknown): src is SimulateResultObjectGround {
   return src.type === "ground";
 }
 
-function startBabylon(data: SimulateResult) {
-  const canvas = document.createElement("canvas");
-  canvas.id = `renderCanvas${(new Date()).getTime()}`;
-  canvas.style.width = "400px";
-  canvas.style.height = "400px";
-  document.body.appendChild(canvas);
+export function startBabylon(element: HTMLCanvasElement, data: SimulateResult) {
+  element.id = `renderCanvas${(new Date()).getTime()}`;
+  element.style.width = "400px";
+  element.style.height = "400px";
 
-  document.getElementById("babylonMount")!.appendChild(canvas);
-
-  const engine = new BABYLON.Engine(canvas, true, {
+  const engine = new BABYLON.Engine(element, true, {
     preserveDrawingBuffer: true,
     stencil: true,
   });
@@ -69,7 +65,7 @@ function startBabylon(data: SimulateResult) {
     scene,
   );
   camera.setTarget(BABYLON.Vector3.Zero());
-  camera.attachControl(canvas, true);
+  camera.attachControl(element, true);
 
   new BABYLON.HemisphericLight(
     "light",
@@ -133,20 +129,14 @@ function startBabylon(data: SimulateResult) {
 
   const deleteView = () => {
     engine.stopRenderLoop();
+    scene.dispose();
     engine.dispose();
-    engine.views = [];
-    document.getElementById("babylonMount")!.removeChild(canvas);
+
+    element.width = 0;
+    element.height = 0;
+    element.style.width = "0px";
+    element.style.height = "0px";
   };
 
   return { deleteView };
-}
-
-declare global {
-  interface Window {
-    startBabylon: typeof startBabylon;
-  }
-}
-
-export default function babylonApp() {
-  window.startBabylon = startBabylon;
 }
