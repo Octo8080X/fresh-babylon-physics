@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { SimulateResult, SimulateResultLog } from "../../routes/api/sim.ts";
+import { SimulateResult } from "../../routes/api/sim.ts";
 import { startBabylon } from "./BabylonApp.ts";
 
 interface BabylonAppLoaderProps {
